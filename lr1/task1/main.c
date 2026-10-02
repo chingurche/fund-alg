@@ -4,27 +4,19 @@
 
 #include <utils.h>
 
-status_t number_multiples(const int num) {
-	int result[100];
-	int i = 0;
+status_t number_multiples(const int num, int *out, size_t *out_size) {
+	size_t i = 0;
 	for (int x = 1; x <= 100; x++) {
 		if (x % num == 0) {
-			result[i++] = x;
+			out[i++] = x;
 		}
 	}
 
-	if (i == 0) {
-		printf("В [1, 100] кратных числа '%d' нет", num);
-	}
-	for (int j = 0; j < i; j++) {
-		printf("%d ", result[j]);
-	}
-	printf("\n");
-
+	*out_size = i;
 	return STATUS_OK;
 }
 
-status_t number_is_prime(const int num) {
+status_t number_is_prime(const int num, bool *out) {
 	bool is_prime = true;
 	for (int x = 2; x < sqrt(num) + 1; x++) {
 		if (num % x == 0) {
@@ -33,72 +25,58 @@ status_t number_is_prime(const int num) {
 		}
 	}
 
-	if (is_prime) { printf("'%d' является простым числом\n", num); }
-	else { printf("'%d' является составным числом\n", num); }
-	
+	*out = is_prime;
 	return STATUS_OK;
 }
 
-status_t number_in_hexadecimal(const int num) {
+status_t number_in_hexadecimal(const int num, char *out, size_t *out_size) {
 	if (num > pow(16, 100) || num < 1) { return STATUS_ERR_RANGE; }
 
-	char digits[100];
-	int i = 0;
+	size_t i = 0;
 	int cnum = num;
 	while (cnum > 0) {
 		int rem = cnum % 16;
 		char c;
 		if (rem > 9) { c = 'A' + (rem - 10); }
 		else { c = '0' + rem; }
-		digits[i++] = c;
+		out[i++] = c;
 		cnum /= 16; 
 	}
 
-	for (int j = i - 1; j >= 0; j--) {
-		printf("%c ", digits[j]);
-	}
-	printf("\n");
+	*out_size = i;
 	return STATUS_OK;
 }
 
-status_t degree_table(const int num) {
+status_t degree_table(const int num, size_t out[10][num]) {
 	if (num > 10 || num < 1) { return STATUS_ERR_RANGE; }
 
-	long table[10][num];
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < num; j++) {
-			table[i][j] = (long)pow(i+1, j+1);
+	for (size_t i = 0; i < 10; i++) {
+		for (size_t j = 0; j < num; j++) {
+			out[i][j] = (size_t)pow(i+1, j+1);
 		}
 	}
-
-	for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < num; j++) {
-            printf("%ld ", table[i][j]);
-        }
-		printf("\n");
-    }
 	return STATUS_OK;
 }
 
-status_t sum_of_natural(const int num) {
-	long result = 0;
-	for (int i = 1; i <= num; i++) {
+status_t sum_of_natural(const int num, size_t *out) {
+	size_t result = 0;
+	for (size_t i = 1; i <= num; i++) {
 		result += i;
 	}
 
-	printf("%ld\n", result);
+	*out = result;
 	return STATUS_OK;
 }
 
-status_t factorial(const int num) {
-	if (num > 50 || num < 1) { return STATUS_ERR_RANGE; }	
+status_t factorial(const int num, size_t *out) {
+	if (num > 20 || num < 1) { return STATUS_ERR_RANGE; }	
 
-	unsigned long long result = 1;
-    for (int i = 2; i <= num; i++) {
+	size_t result = 1;
+    for (size_t i = 2; i <= num; i++) {
         result *= i;
     }
 
-    printf("%llu\n", result);
+	*out = result;
     return STATUS_OK;
 }
 
@@ -120,36 +98,82 @@ int main(int argc, char *argv[]) {
         return 0;
 	}
 	
-	status_t status;
+	status_t rc;
 	switch (flag) {
-		case 'h': number_multiples(num); break;
-		case 'p': number_is_prime(num); break;
-		case 's': 
-			status = number_in_hexadecimal(num); 
-			if (status == STATUS_ERR_RANGE) {
+		case 'h': {
+			int result[100];
+			size_t count;
+			number_multiples(num, result, &count);
+
+			if (count == 0) {
+				printf("В [1, 100] кратных числа '%d' нет", num);
+			}
+			for (int j = 0; j < count; j++) {
+				printf("%d ", result[j]);
+			}
+			printf("\n");
+			break;
+		}
+		case 'p': {
+			bool is_prime;
+			number_is_prime(num, &is_prime);
+			
+			if (is_prime) { printf("'%d' является простым числом\n", num); }
+			else { printf("'%d' является составным числом\n", num); }
+			break;
+		}
+		case 's': {
+			char digits[100];
+			size_t count;
+			status_t rc = number_in_hexadecimal(num, digits, &count); 
+			if (rc == STATUS_ERR_RANGE) {
 				fprintf(stderr, "Число слишком маленькое или "
 				"слишком большое для того чтобы представить"
 				"его в системе счисление с основанием 16");
 				return 0;
 			}
+
+			for (int j = count - 1; j >= 0; j--) {
+				printf("%c ", digits[j]);
+			}
+			printf("\n");
 			break;
-		case 'e':
-			status = degree_table(num);
-            if (status == STATUS_ERR_RANGE) {
+		}
+		case 'e': {
+			size_t table[10][num];
+			status_t rc = degree_table(num, table);
+            if (rc == STATUS_ERR_RANGE) {
                 fprintf(stderr, "Число не должно превышать 10\n");
 				return 0;
             }
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < num; j++) {
+					printf("%zu ", table[i][j]);
+				}
+				printf("\n");
+			}
             break;
-		case 'a': sum_of_natural(num); break;
-		case 'f': 
-			status = factorial(num);
-            if (status == STATUS_ERR_RANGE) {
-                fprintf(stderr, "Факториалы выше 50 нельзя вместить в unsigned long long\n");
+		}
+		case 'a': {
+			size_t sum;
+			sum_of_natural(num, &sum);
+			
+			printf("%zu\n", sum);
+			break;
+		}
+		case 'f': {
+			size_t result;
+			status_t rc = factorial(num, &result);
+            if (rc == STATUS_ERR_RANGE) {
+                fprintf(stderr, "Факториалы выше 20 нельзя вместить даже в size_t\n");
 				return 0;
             }
+    		printf("%zu\n", result);
             break;
-		default:
+		}
+		default: {
 			fprintf(stderr, "Существующие флаги: h, p, s, e, a, f\n");
 			return 0;
+		}
 	}
 }

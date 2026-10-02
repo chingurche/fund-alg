@@ -7,18 +7,16 @@
 
 typedef enum {
     STATUS_OK = 0,
-	STATUS_ERR_RANGE,
 	STATUS_ERR_NULL_ARG,
     STATUS_ERR_ALLOC,
+    STATUS_ERR_RANGE,
     STATUS_ERR_INVALID,
+    STATUS_ERR_DIV_ZERO,
+    STATUS_ERR_FORMAT,
     STATUS_ERR_OPEN,
     STATUS_ERR_READ,
     STATUS_ERR_WRITE,
-    STATUS_ERR_CLOSE,
-    STATUS_ERR_NOT_FOUND,
-    STATUS_ERR_EMPTY,
-    STATUS_ERR_DUPLICATE,
-    STATUS_ERR_FORMAT
+    STATUS_ERR_CLOSE     
 } status_t;
 
 status_t parse_double(const char *s, double *out) {
