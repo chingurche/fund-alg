@@ -2,8 +2,8 @@
 #define UTILS_H
 
 #include <stdlib.h>
-#include <errno.h>
 #include <float.h>
+#include <math.h>
 
 typedef enum {
     STATUS_OK = 0,
@@ -21,20 +21,17 @@ typedef enum {
     STATUS_ERR_FORMAT
 } status_t;
 
-status_t parse_eps(const char *s, double *out) // <stdlib.h> <errno.h> <float.h>
-{
+status_t parse_double(const char *s, double *out) {
     if (s == NULL || out == NULL)
         return STATUS_ERR_NULL_ARG;
 
     char *end = NULL;
-    errno = 0;
     double v = strtod(s, &end);
 
-    if (end == s)         return STATUS_ERR_FORMAT;
-    if (*end != '\0')     return STATUS_ERR_FORMAT;
-    if (errno == ERANGE)  return STATUS_ERR_RANGE;
+    if (end == s || *end != '\0')
+        return STATUS_ERR_FORMAT;
 
-    if (v < DBL_EPSILON || v >= 1.0)
+    if (isnan(v) || isinf(v))
         return STATUS_ERR_RANGE;
 
     *out = v;

@@ -353,7 +353,6 @@ static double product_over_primes(int t)
 status_t solve_y(const double eps, double *out)
 {
     if (out == NULL) return STATUS_ERR_NULL_ARG;
-    if (eps <= 0.0)  return STATUS_ERR_INVALID;
 
     const int T = 1000000;
 
@@ -397,9 +396,15 @@ int main(int argc, char *argv[]) {
 	}
 	
 	double eps = 0.0;
-    status_t rc = parse_eps(argv[1], &eps);
+    status_t rc = parse_double(argv[1], &eps);
 
     switch (rc) {
+        case STATUS_OK:
+            if (eps <= 0 || eps >= 1) {
+                fprintf(stderr, "Эпсилон должен быть в (0, 1)\n");
+                return 0;
+            }
+            break;
         case STATUS_ERR_FORMAT:
             fprintf(stderr, "Ошибка: '%s' не является числом\n", argv[1]);
             return 0;

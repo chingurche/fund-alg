@@ -127,23 +127,29 @@ int main(int argc, char *argv[]) {
 		case 's': 
 			status = number_in_hexadecimal(num); 
 			if (status == STATUS_ERR_RANGE) {
-				printf("Число слишком маленькое или "
+				fprintf(stderr, "Число слишком маленькое или "
 				"слишком большое для того чтобы представить"
 				"его в системе счисление с основанием 16");
+				return 0;
 			}
 			break;
 		case 'e':
 			status = degree_table(num);
             if (status == STATUS_ERR_RANGE) {
-                printf("Число не должно превышать 10\n");
+                fprintf(stderr, "Число не должно превышать 10\n");
+				return 0;
             }
             break;
 		case 'a': sum_of_natural(num); break;
 		case 'f': 
 			status = factorial(num);
             if (status == STATUS_ERR_RANGE) {
-                printf("Факториалы выше 50 нельзя вместить в unsigned long long\n");
+                fprintf(stderr, "Факториалы выше 50 нельзя вместить в unsigned long long\n");
+				return 0;
             }
             break;
+		default:
+			fprintf(stderr, "Существующие флаги: h, p, s, e, a, f\n");
+			return 0;
 	}
 }
