@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
+#include <limits.h>
 
 typedef enum {
     STATUS_OK = 0,
@@ -18,6 +19,27 @@ typedef enum {
     STATUS_ERR_WRITE,
     STATUS_ERR_CLOSE     
 } status_t;
+
+status_t parse_int(const char *s, int *out) {
+    if (s == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    char *end = NULL;
+    long v = strtol(s, &end, 10);
+
+    if (end == s)
+        return STATUS_ERR_FORMAT;
+
+    if (*end != '\0')
+        return STATUS_ERR_FORMAT;
+
+    if (v < INT_MIN || v > INT_MAX) {
+        return STATUS_ERR_RANGE;
+    }
+
+    *out = (int)v;
+    return STATUS_OK;
+}
 
 status_t parse_double(const char *s, double *out) {
     if (s == NULL || out == NULL)

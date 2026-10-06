@@ -1,10 +1,13 @@
+#include <utils.h>
+
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
 
-#include <utils.h>
 
 status_t number_multiples(const int num, int *out, size_t *out_size) {
+	if (num == 0) { return STATUS_ERR_RANGE; }
+
 	size_t i = 0;
 	for (int x = 1; x <= 100; x++) {
 		if (x % num == 0) {
@@ -17,8 +20,17 @@ status_t number_multiples(const int num, int *out, size_t *out_size) {
 }
 
 status_t number_is_prime(const int num, bool *out) {
+	if (num <= 1) {
+		*out = false;
+		return STATUS_OK;
+	}
+	if (num == 2) {
+		*out = true;
+		return STATUS_OK;
+	}
+	
 	bool is_prime = true;
-	for (int x = 2; x < sqrt(num) + 1; x++) {
+	for (int x = 3; x < sqrt(num) + 1; x++) {
 		if (num % x == 0) {
 			is_prime = false;
 			break;
@@ -30,7 +42,7 @@ status_t number_is_prime(const int num, bool *out) {
 }
 
 status_t number_in_hexadecimal(const int num, char *out, size_t *out_size) {
-	if (num > pow(16, 100) || num < 1) { return STATUS_ERR_RANGE; }
+	if (num < 1) { return STATUS_ERR_RANGE; }
 
 	size_t i = 0;
 	int cnum = num;
@@ -87,9 +99,17 @@ int main(int argc, char *argv[]) {
 	}
 
 	int num;
-	if (sscanf(argv[1], "%d", &num) != 1) {
-		fprintf(stderr, "'%s' не число\n", argv[1]);
-		return 0;
+	status_t rc = parse_int(argv[1], &num);
+	switch (rc) {
+		case STATUS_ERR_FORMAT:
+			fprintf(stderr, "'%s' не целое число\n", argv[1]);
+			return 0;
+		case STATUS_ERR_RANGE:
+			fprintf(stderr, "'%s' вне диапазона int\n", argv[1]);
+			return 0;
+		case STATUS_ERR_NULL_ARG:
+			fprintf(stderr, "NULL\n", argv[1]);
+			return 0;
 	}
 
 	char flag;
@@ -97,13 +117,17 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "'%s' не флаг формата -X\n", argv[2]);
         return 0;
 	}
-	
-	status_t rc;
+
 	switch (flag) {
 		case 'h': {
 			int result[100];
 			size_t count;
-			number_multiples(num, result, &count);
+			status_t rc = number_multiples(num, result, &count);
+
+			if (rc == STATUS_ERR_RANGE) {
+				fprintf(stderr, "Делитель равен нулю\n");
+				return 0;
+			}
 
 			if (count == 0) {
 				printf("В [1, 100] кратных числа '%d' нет", num);

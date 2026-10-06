@@ -241,7 +241,9 @@ int main(int argc, char *argv[]) {
             }
 
             int a, b;
-            if (sscanf(argv[2], "%d", &a) != 1 || sscanf(argv[3], "%d", &b) != 1) {
+            status_t rc1 = parse_int(argv[2], &a);
+            status_t rc2 = parse_int(argv[3], &b);
+            if (rc1 != STATUS_OK || rc2 != STATUS_OK) {
                 fprintf(stderr, "Флаг m принимает не вход целые ненулевые числа\n");
                 return 0;
             }

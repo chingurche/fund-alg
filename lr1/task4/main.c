@@ -118,13 +118,26 @@ status_t count_latin(const char *src, const size_t src_size,
     size_t latin = 0;
     for (size_t r = 0; r < src_size; ++r) {
         if (isalpha(src[r])) {
-            latin++;
+            latin++;    
         }
         if (src[r] == '\n') {
-            w += (size_t)snprintf(out + w, src_size + 1 - w, "%zu", latin);
+            size_t written = (size_t)snprintf(out + w, src_size + 1 - w, "%zu", latin);
+            if (written < 0 || (size_t)written >= src_size + 1 - w) {
+                free(out);
+                return STATUS_ERR_RANGE;
+            }
+            w += (size_t)written;
             out[w++] = '\n';
             latin = 0;
         }
+    }
+    if (src_size > 0 && src[src_size - 1] != '\n') {
+        size_t written = (size_t)snprintf(out + w, src_size + 1 - w, "%zu", latin);
+        if (written < 0 || (size_t)written >= src_size + 1 - w) {
+            free(out);
+            return STATUS_ERR_RANGE;
+        }
+        w += (size_t)written;
     }
     out[w] = '\0';
 
@@ -146,12 +159,25 @@ status_t count_special(const char *src, const size_t src_size,
     size_t special = 0;
     for (size_t r = 0; r < src_size; ++r) {
         if (src[r] == '\n') {
-            w += (size_t)snprintf(out + w, src_size + 1 - w, "%zu", special);
+            size_t written = (size_t)snprintf(out + w, src_size + 1 - w, "%zu", special);
+            if (written < 0 || (size_t)written >= src_size + 1 - w) {
+                free(out);
+                return STATUS_ERR_RANGE;
+            }
+            w += (size_t)written;
             out[w++] = '\n';
             special = 0;
         } else if (!isalpha(src[r]) && !isdigit(src[r]) && src[r] != ' ') {
             special++;
         }
+    }
+    if (src_size > 0 && src[src_size - 1] != '\n') {
+        size_t written = (size_t)snprintf(out + w, src_size + 1 - w, "%zu", special);
+        if (written < 0 || (size_t)written >= src_size + 1 - w) {
+            free(out);
+            return STATUS_ERR_RANGE;
+        }
+        w += (size_t)written;
     }
     out[w] = '\0';
 
@@ -211,13 +237,13 @@ status_t write_file(const char *path, const char *buf, size_t size) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Формат запуска программы: [программа] [флаг] [flag species args]\n");
+    if (argc < 3) {
+        fprintf(stderr, "Формат запуска программы: [программа] [флаг] [вход] [опционально выход]\n");
         return 0;
     }
 
     char flag;
-    bool is_n;
+    bool is_n = false;
 	if (argv[1][0] != '-' && argv[1][0] != '/') {
         fprintf(stderr, "Формат флага: -X или /X\n");
         return 0;
@@ -230,17 +256,22 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Формат флага с опциональным символом n: -nX или /nX\n");
             return 0;
         }
-    } else if(argv[1][1] != '\0' && argv[1][1] != '\0') {
+    } else if(argv[1][1] != '\0' && argv[1][2] == '\0') {
         is_n = false;
         flag = argv[1][1];
     } else {
         fprintf(stderr, "Формат флага: -X или /X\n");
+        return 0;
     }
 
     const char *in_path = argv[2];
     const char *out_path;
     char nbuf[512];
     if (!is_n) {
+        if (argc < 4) {
+            fprintf(stderr, "Выходной путь должен записываться третьим аргументом (иначе запуск с опциональным флагом n)\n");
+            return 0;
+        }
         out_path = argv[3];
     } else {
         status_t rc = add_out_prefix_to(in_path, nbuf, sizeof(nbuf));

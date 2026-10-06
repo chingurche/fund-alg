@@ -357,8 +357,6 @@ status_t solve_y(const double eps, double *out)
     const int T = 1000000;
 
     double L = product_over_primes(T);
-    if (L < 0.0)
-        return STATUS_ERR_ALLOC;
 
     double a = 0.0, b = 1.0;
     double fa = exp(-a) - L;
