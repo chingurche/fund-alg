@@ -35,7 +35,7 @@ status_t add_out_prefix_to(const char *path, char *buf, size_t capacity) {
     return STATUS_OK;
 }
 
-status_t read_file(const char *path, char **buf, size_t *size) {
+/*status_t read_file(const char *path, char **buf, size_t *size) {
     if (path == NULL || buf == NULL || size == NULL)
         return STATUS_ERR_NULL_ARG;
 
@@ -82,7 +82,7 @@ status_t read_file(const char *path, char **buf, size_t *size) {
     *buf  = data;
     *size = (size_t)sz;
     return STATUS_OK;
-}
+}*/
 
 status_t remove_digits(const char *src, const size_t src_size,
                        char **dst, size_t *dst_size) {
@@ -216,7 +216,7 @@ status_t replace_hex(const char *src, size_t src_size,
     return STATUS_OK;
 }
 
-status_t write_file(const char *path, const char *buf, size_t size) {
+/*status_t write_file(const char *path, const char *buf, size_t size) {
     if (path == NULL || buf == NULL)
         return STATUS_ERR_NULL_ARG;
 
@@ -234,7 +234,7 @@ status_t write_file(const char *path, const char *buf, size_t size) {
         return STATUS_ERR_CLOSE;
 
     return STATUS_OK;
-}
+}*/
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
