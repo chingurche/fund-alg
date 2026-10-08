@@ -58,4 +58,25 @@ status_t parse_double(const char *s, double *out) {
     return STATUS_OK;
 }
 
+status_t parse_in_base(const char *s, int base, size_t *out)
+{
+    if (s == NULL || out == NULL)     return STATUS_ERR_NULL_ARG;
+    if (base < 2 || base > 36)        return STATUS_ERR_INVALID;
+
+    size_t v = 0;
+    for (const char *p = s; *p; ++p) {
+        int d;
+        if (*p >= '0' && *p <= '9')       d = *p - '0';
+        else if (*p >= 'a' && *p <= 'z')  d = *p - 'a' + 10;
+        else if (*p >= 'A' && *p <= 'Z')  d = *p - 'A' + 10;
+        else                              return STATUS_ERR_FORMAT;
+
+        if (d >= base)                    return STATUS_ERR_FORMAT;
+
+        v = v * base + (size_t)d;
+    }
+    *out = v;
+    return STATUS_OK;
+}
+
 #endif
