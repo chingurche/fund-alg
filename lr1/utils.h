@@ -59,10 +59,10 @@ status_t parse_double(const char *s, double *out) {
     return STATUS_OK;
 }
 
-status_t parse_in_base(const char *s, int base, size_t *out)
-{
+status_t parse_in_base(const char *s, int base, size_t *out) {
     if (s == NULL || out == NULL)     return STATUS_ERR_NULL_ARG;
     if (base < 2 || base > 36)        return STATUS_ERR_INVALID;
+    if (*s == '\0')                   return STATUS_ERR_FORMAT;
 
     size_t v = 0;
     for (const char *p = s; *p; ++p) {
