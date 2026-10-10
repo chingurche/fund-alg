@@ -24,8 +24,7 @@ status_t merge_lexemes(const char *src1, const size_t src1_size,
         return STATUS_ERR_ALLOC;
 
     size_t max_src_size = max(src1_size, src2_size);
-    // кольцевые буфера ...
-    // но во втором оказывается тоже нужны лексемы
+    // во втором оказывается тоже нужны лексемы
     // поэтому придется второй флаг другим способом
     const size_t BUF_LEXEME_SIZE = 64;
     const size_t BUF_SYMBOL_SIZE = 512;
@@ -36,31 +35,35 @@ status_t merge_lexemes(const char *src1, const size_t src1_size,
     size_t waiting_lex = 0;
     size_t w = 0;
     for (size_t r = 0; r < max_src_size; ++r) {
-        if (r <= src1_size) {
+        if (r < src1_size) {
             char r1 = src1[r];
             if ((r1 == ' ' || r1 == '\t' || r1 == '\n')) {
-                buf1[b1lex][b1sym] = '\0';
                 if (b1sym != 0) {
-                    if (b1lex == (waiting_lex - 1))
+                    if (b1lex == BUF_LEXEME_SIZE)
                         return STATUS_ERR_RANGE;
+                    buf1[b1lex][b1sym] = '\0';
                     b1lex++;
                     b1sym = 0;
                 }
             } else {
+                if (b1sym >= BUF_SYMBOL_SIZE - 1)
+                    return STATUS_ERR_RANGE;
                 buf1[b1lex][b1sym++] = r1;
             }
         }
-        if (r <= src2_size) {
+        if (r < src2_size) {
             char r2 = src2[r];
             if ((r2 == ' ' || r2 == '\t' || r2 == '\n')) {
-                buf2[b2lex][b2sym] = '\0';
                 if (b2sym != 0) {
-                    if (b2lex == (waiting_lex - 1))
+                    if (b2lex == BUF_LEXEME_SIZE)
                         return STATUS_ERR_RANGE;
+                    buf2[b2lex][b2sym] = '\0';
                     b2lex++;
                     b2sym = 0;
                 }
             } else {
+                if (b2sym >= BUF_SYMBOL_SIZE - 1)
+                    return STATUS_ERR_RANGE;
                 buf2[b2lex][b2sym++] = r2;
             }
         }
@@ -74,6 +77,20 @@ status_t merge_lexemes(const char *src1, const size_t src1_size,
             w += snprintf(out + w, cap - w, "%s ", buf1[waiting_lex++]);
         }
     }
+    if (b1sym != 0) { buf1[b1lex][b1sym] = '\0'; b1lex++; }
+    if (b2sym != 0) { buf2[b2lex][b2sym] = '\0'; b2lex++; }
+
+    while (b1lex > waiting_lex && b2lex > waiting_lex) {
+        w += snprintf(out + w, cap - w, "%s ", buf1[waiting_lex]);
+        w += snprintf(out + w, cap - w, "%s ", buf2[waiting_lex++]);
+    }
+    while (b1lex > waiting_lex) {
+        w += snprintf(out + w, cap - w, "%s ", buf1[waiting_lex++]);
+    }
+    while (b2lex > waiting_lex) {
+        w += snprintf(out + w, cap - w, "%s ", buf2[waiting_lex++]);
+    }
+
     out[w] = '\0';
 
     *dst = out;
@@ -202,7 +219,7 @@ status_t change_lexemes(const char *src, size_t src_size,
             free(copy); free(out);
             return STATUS_ERR_RANGE;
         }
-        out[w++] = ' ';
+        if (n > 1) out[w++] = ' ';
 
         token = strtok(NULL, " \t\n");
     }

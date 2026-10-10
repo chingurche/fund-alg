@@ -5,14 +5,14 @@
 #include <math.h>
 
 status_t switch_max_min(int *arr, const size_t size) {
-    int *max;
-    int *min;
-    for (int i = 0; i < (int)size; i++) {
+    if (arr == NULL)  return STATUS_ERR_NULL_ARG;
+    if (size == 0)    return STATUS_ERR_INVALID;
+    
+    int *max = &arr[0];
+    int *min = &arr[0];
+    printf("%d ", arr[0]);
+    for (size_t i = 1; i < size; i++) {
         printf("%d ", arr[i]);
-        if (i == 0) {
-            max = &arr[i];
-            min = &arr[i];
-        }
 
         if (*max < arr[i])
             max = &arr[i];
@@ -25,9 +25,10 @@ status_t switch_max_min(int *arr, const size_t size) {
     *min = temp;
 
     printf("\n%d и %d поменялись местами\n", *max, *min);
-    for (int i = 0; i < (int)size; i++) {
+    for (size_t i = 0; i < size; i++) {
         printf("%d ", arr[i]);
     }
+    return STATUS_OK;
 }
 
 int rand_range(int min, int max) {
@@ -54,9 +55,9 @@ int main(int argc, char *argv[]) {
 
     // 1
     printf("1. \n");
-    size_t ARRSIZ = 10;
+    const size_t ARRSIZ = 10;
     int arr[ARRSIZ];
-    for (int i = 0; i < ARRSIZ; i++) {
+    for (size_t i = 0; i < ARRSIZ; i++) {
         arr[i] = rand_range(a, b);
     }
     switch_max_min(arr, ARRSIZ);
@@ -67,9 +68,10 @@ int main(int argc, char *argv[]) {
     int *b_arr = malloc(cap * sizeof(int));
     if (a_arr == NULL || b_arr == NULL) {
         fprintf(stderr, "Не удалось выделить память\n");
+        free(a_arr); free(b_arr);
         return 1;
     }
-    for (int i = 0; i < (int)cap; i++) {
+    for (size_t i = 0; i < cap; i++) {
         a_arr[i] = rand_range(-1000, 1000);
         b_arr[i] = rand_range(-1000, 1000);
     }
@@ -77,9 +79,10 @@ int main(int argc, char *argv[]) {
     int *c_arr = malloc(cap * sizeof(int));
     if (c_arr == NULL) {
         fprintf(stderr, "Не удалось выделить память\n");
+        free(a_arr); free(b_arr);
         return 1;
     }
-    for (int i = 0; i < (int)cap; i++) {
+    for (size_t i = 0; i < cap; i++) {
         c_arr[i] = a_arr[i];
         int closest = 1001;
         for (int j = 0; j < (int)cap; j++) {

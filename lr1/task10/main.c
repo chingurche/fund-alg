@@ -4,8 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
-
-static const char DIGITS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+#include <limits.h>
 
 static char digit_to_char(unsigned int d)
 {
@@ -129,6 +128,11 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "NULL\n");
                 free(nums);
                 return 1;
+        }
+        if (num > (size_t)INT_MAX) {
+            fprintf(stderr, "Число вне диапазона int\n");
+            free(nums);
+            return 1;
         }
         int signum = sign * (int)num;
 

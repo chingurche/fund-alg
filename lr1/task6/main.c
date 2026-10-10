@@ -117,6 +117,7 @@ static bool is_kaprekar(unsigned long long n, int base)
 status_t find_kaprekar(const size_t base, const size_t count, kaprekar_t *out, ...)
 {
     if (base < 2 || base > 36)  return STATUS_ERR_INVALID;
+    if (out == NULL)  return STATUS_ERR_NULL_ARG;
 
     va_list args;
     va_start(args, out);
@@ -132,7 +133,7 @@ status_t find_kaprekar(const size_t base, const size_t count, kaprekar_t *out, .
         }
 
         strncpy(out[i].repr, s, 64);
-        out[i].repr[64] = '\0';
+        out[i].repr[63] = '\0';
 
         size_t n;
         status_t rc = parse_in_base(s, base, &n);
@@ -153,7 +154,7 @@ status_t find_kaprekar(const size_t base, const size_t count, kaprekar_t *out, .
 // 4
 status_t geometric_mean(const int n, double *out, ...) {
     if (out == NULL)  return STATUS_ERR_NULL_ARG;
-    if (n == 0)       return STATUS_ERR_INVALID;
+    if (n <= 0)       return STATUS_ERR_INVALID;
 
     va_list args;
     va_start(args, out);
@@ -301,25 +302,65 @@ int main(int argc, char *argv[]) {
     // 3
     const size_t kapr_count = 6;
     kaprekar_t capr_res[kapr_count];
-    find_kaprekar(16, kapr_count, capr_res, "1", "6", "A", "FF", "2", "5");
+    rc = find_kaprekar(16, kapr_count, capr_res, "1", "6", "A", "FF", "2", "5");
 
-    printf("3. \n");
-    for (int i = 0; i < kapr_count; i++) {
-        printf("%s %lu %d\n", capr_res[i].repr, capr_res[i].value, capr_res[i].kprkr);
+    switch (rc) {
+        case STATUS_OK:
+            printf("3. \n");
+            for (int i = 0; i < (int)kapr_count; i++) {
+                printf("%s %zu %d\n", capr_res[i].repr, capr_res[i].value, capr_res[i].kprkr);
+            }
+            break;
+        case STATUS_ERR_NULL_ARG:
+            fprintf(stderr, "Внутренняя ошибка\n");
+		    return 1;
+        default:
+            fprintf(stderr, "Неизвестная ошибка\n");
+		    return 1;
     }
 
     // 4
     double geometric_ans;
     rc = geometric_mean(3, &geometric_ans, 1.0, 3.0, 9.0);
-    printf("4. %f\n", geometric_ans);
+    switch (rc) {
+        case STATUS_OK:
+            printf("4. %f\n", geometric_ans);
+            break;
+        case STATUS_ERR_NULL_ARG:
+            fprintf(stderr, "Внутренняя ошибка\n");
+		    return 1;
+        default:
+            fprintf(stderr, "Неизвестная ошибка\n");
+		    return 1;
+    }
 
     // 5
     double ipow_ans;
     rc = ipow_rec(2.0, 10, &ipow_ans);
-    printf("5. %f\n", ipow_ans);
+    switch (rc) {
+        case STATUS_OK:
+            printf("5. %f\n", ipow_ans);
+            break;
+        case STATUS_ERR_NULL_ARG:
+            fprintf(stderr, "Внутренняя ошибка\n");
+		    return 1;
+        default:
+            fprintf(stderr, "Неизвестная ошибка\n");
+		    return 1;
+    }
 
     // 6
     double bisection_ans;
     rc = bisection(f1, 1.0, 2.0, 1e-5, &bisection_ans);
-    printf("6. %f\n", bisection_ans);
+    switch (rc) {
+        case STATUS_OK:
+            printf("6. %f\n", bisection_ans);
+            break;
+        case STATUS_ERR_NULL_ARG:
+            fprintf(stderr, "Внутренняя ошибка\n");
+		    return 1;
+        default:
+            fprintf(stderr, "Неизвестная ошибка\n");
+		    return 1;
+    }
 }

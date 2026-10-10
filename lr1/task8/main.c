@@ -9,6 +9,13 @@ typedef struct {
     size_t value;
 } num_t;
 
+static const char *strip_leading_zeros(const char *s)
+{
+    while (*s == '0' && *(s + 1) != '\0')
+        ++s;
+    return s;
+}
+
 status_t min_base(const char *s, int *out)
 {
     if (s == NULL || out == NULL)
@@ -49,7 +56,7 @@ status_t solve_values(const char *src, const size_t src_size,
     memcpy(copy, src, src_size);
     copy[src_size] = '\0';
 
-    size_t cap = src_size * 4 + 1;
+    size_t cap = src_size * 32 + 64;
     char *out = malloc(cap);
     if (!out) { free(copy); return STATUS_ERR_ALLOC; }
 
@@ -63,19 +70,23 @@ status_t solve_values(const char *src, const size_t src_size,
         status_t rc = min_base(num.repr, &num.base);
 
         if (rc != STATUS_OK) {
-            printf("тут");
+            free(copy);
+            free(out);
             return rc;
         }
 
         rc = parse_in_base(num.repr, num.base, &num.value);
 
         if (rc != STATUS_OK) {
+            free(copy);
+            free(out);
             return rc;
         }
 
-        w += snprintf(out + w, cap - w, "%s ", num.repr);
+        const char *clean = strip_leading_zeros(num.repr);
+        w += snprintf(out + w, cap - w, "%s ", clean);
         w += snprintf(out + w, cap - w, "%d ", num.base);
-        w += snprintf(out + w, cap - w, "%lu\n", num.value);
+        w += snprintf(out + w, cap - w, "%zu\n", num.value);
 
         token = strtok(NULL, " \t\n");
     }
