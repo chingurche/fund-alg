@@ -243,6 +243,7 @@ int main(int argc, char *argv[]) {
 
             char randconcstring[BUFSIZ];
             rc = get_concatenated_randomly(strings, string_count, randconcstring);
+            free(strings);
             switch (rc) {
                 case STATUS_OK: { break; }
                 case STATUS_ERR_RANGE: {
