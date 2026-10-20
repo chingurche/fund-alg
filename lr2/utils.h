@@ -20,7 +20,9 @@ typedef enum {
     STATUS_ERR_READ,
     STATUS_ERR_WRITE,
     STATUS_ERR_CLOSE,
-    STATUS_ERR_PATH  
+    STATUS_ERR_PATH,
+    STATUS_ERR_PARCE,
+    STATUS_ERR_OVERFLOW
 } status_t;
 
 status_t parse_uint(const char *s, unsigned int *out)
@@ -48,4 +50,108 @@ status_t parse_uint(const char *s, unsigned int *out)
     return STATUS_OK;
 }
 
+status_t parse_double(const char *s, double *out) {
+    if (s == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    char *end = NULL;
+    double v = strtod(s, &end);
+
+    if (end == s || *end != '\0')
+        return STATUS_ERR_FORMAT;
+
+    if (isnan(v) || isinf(v))
+        return STATUS_ERR_RANGE;
+
+    *out = v;
+    return STATUS_OK;
+}
+
+status_t path_equal(char *in, char *out) {
+    if (in == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+    
+    struct stat st1;
+    if (stat(in, &st1) != 0)
+        return STATUS_ERR_PATH;
+
+    struct stat st2;
+    if (stat(out, &st2) != 0)
+        return STATUS_OK;
+    
+    if (st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino) {
+        return STATUS_ERR_OPEN;
+    }
+
+    return STATUS_OK;
+}
+
+status_t read_file(const char *path, char **buf, size_t *size) {
+    if (path == NULL || buf == NULL || size == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    FILE *f = fopen(path, "rb");
+    if (!f)
+        return STATUS_ERR_OPEN;
+
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return STATUS_ERR_READ;
+    }
+
+    long sz = ftell(f);
+    if (sz < 0) {
+        fclose(f);
+        return STATUS_ERR_READ;
+    }
+
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return STATUS_ERR_READ;
+    }
+
+    char *data = malloc((size_t)sz + 1);
+    if (!data) {
+        fclose(f);
+        return STATUS_ERR_ALLOC;
+    }
+
+    size_t read = fread(data, 1, (size_t)sz, f);
+    if (read != (size_t)sz) {
+        free(data);
+        fclose(f);
+        return STATUS_ERR_READ;
+    }
+
+    data[sz] = '\0';
+
+    if (fclose(f) != 0) {
+        free(data);
+        return STATUS_ERR_CLOSE;
+    }
+
+    *buf  = data;
+    *size = (size_t)sz;
+    return STATUS_OK;
+}
+
+status_t write_file(const char *path, const char *buf, size_t size) {
+    if (path == NULL || buf == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    FILE *f = fopen(path, "wb");
+    if (!f)
+        return STATUS_ERR_OPEN;
+
+    size_t written = fwrite(buf, 1, size, f);
+    if (written != size) {
+        fclose(f);
+        return STATUS_ERR_WRITE;
+    }
+
+    if (fclose(f) != 0)
+        return STATUS_ERR_CLOSE;
+
+    return STATUS_OK;
+}
 #endif
