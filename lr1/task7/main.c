@@ -219,7 +219,7 @@ status_t change_lexemes(const char *src, size_t src_size,
             free(copy); free(out);
             return STATUS_ERR_RANGE;
         }
-        if (n > 1) out[w++] = ' ';
+        if (n > 0) out[w++] = ' ';
 
         token = strtok(NULL, " \t\n");
     }
@@ -261,6 +261,23 @@ int main(int argc, char *argv[]) {
 
             char *in_path1 = argv[2];
             char *in_path2 = argv[3];
+            out_path = argv[4];
+            switch (path_equal(in_path1, out_path)) {
+                case STATUS_ERR_PATH:
+                    fprintf(stderr, "Не является валидным путем.\n");
+                    return 1;
+                case STATUS_ERR_OPEN:
+                    fprintf(stderr, "Пути чтения и записи совпадают.\n");
+                    return 1;
+            }
+            switch (path_equal(in_path2, out_path)) {
+                case STATUS_ERR_PATH:
+                    fprintf(stderr, "Не является валидным путем.\n");
+                    return 1;
+                case STATUS_ERR_OPEN:
+                    fprintf(stderr, "Пути чтения и записи совпадают.\n");
+                    return 1;
+            }
 
             char *src1 = NULL, *src2 = NULL;
             size_t src1_size, src2_size;
@@ -290,8 +307,6 @@ int main(int argc, char *argv[]) {
             free(src1);
             free(src2);
 
-            out_path = argv[4];
-
             break;
         }
         case 'a' : {
@@ -301,6 +316,15 @@ int main(int argc, char *argv[]) {
             }
 
             char *in_path = argv[2];
+            out_path = argv[3];
+            switch (path_equal(in_path, out_path)) {
+                case STATUS_ERR_PATH:
+                    fprintf(stderr, "Не является валидным путем.\n");
+                    return 1;
+                case STATUS_ERR_OPEN:
+                    fprintf(stderr, "Пути чтения и записи совпадают.\n");
+                    return 1;
+            }
 
             char *src = NULL;
             size_t src_size;
@@ -323,8 +347,6 @@ int main(int argc, char *argv[]) {
             }
 
             free(src);
-
-            out_path = argv[3];
 
             break;
         }

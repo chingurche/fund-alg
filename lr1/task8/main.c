@@ -106,6 +106,14 @@ int main(int argc, char *argv[]) {
 
     char *in_path = argv[1];
     char *out_path = argv[2];
+    switch (path_equal(in_path, out_path)) {
+        case STATUS_ERR_PATH:
+            fprintf(stderr, "Не является валидным путем.\n");
+            return 1;
+        case STATUS_ERR_OPEN:
+            fprintf(stderr, "Пути чтения и записи совпадают.\n");
+            return 1;
+    }
 
     char *src = NULL;
     size_t src_size;

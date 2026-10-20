@@ -93,6 +93,10 @@ int main(int argc, char *argv[]) {
     }
 
     printf("\n2. По инструкции были созданы динамические массивы A, B, C\n");
+    printf("N  A, B, C\n");
+    for (int i = 0; i < 10; i++) {
+        printf("%d. %d %d %d\n", i+1, a_arr[i], b_arr[i], c_arr[i]);
+    }
 
     free(a_arr); free(b_arr); free(c_arr);
 

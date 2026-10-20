@@ -6,6 +6,7 @@
 #include <math.h>
 #include <limits.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 typedef enum {
     STATUS_OK = 0,
@@ -18,7 +19,8 @@ typedef enum {
     STATUS_ERR_OPEN,
     STATUS_ERR_READ,
     STATUS_ERR_WRITE,
-    STATUS_ERR_CLOSE     
+    STATUS_ERR_CLOSE,
+    STATUS_ERR_PATH  
 } status_t;
 
 status_t parse_int(const char *s, int *out) {
@@ -77,6 +79,20 @@ status_t parse_in_base(const char *s, int base, size_t *out) {
         v = v * base + (size_t)d;
     }
     *out = v;
+    return STATUS_OK;
+}
+
+status_t path_equal(char *path1, char *path2) {
+    struct stat st1, st2;
+    
+    if (stat(path1, &st1) != 0 || stat(path2, &st2) != 0) {
+        return STATUS_ERR_PATH;
+    }
+    
+    if (st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino) {
+        return STATUS_ERR_OPEN;
+    }
+
     return STATUS_OK;
 }
 
