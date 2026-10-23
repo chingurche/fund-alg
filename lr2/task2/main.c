@@ -50,56 +50,111 @@ static int in_descending(const void *a, const void *b) {
     return 0;
 }
 
+void free_employees(Employee *emp, size_t n) // изза strdup
+{
+    if (emp == NULL) return;
+    for (size_t i = 0; i < n; i++) {
+        free(emp[i].first_name);
+        free(emp[i].last_name);
+    }
+    free(emp);
+}
+
 status_t parse_employee(const char *src, const size_t src_size, 
                         Employee **emp, size_t *emp_size) {
     if (src == NULL || emp == NULL || emp_size == NULL)
         return STATUS_ERR_NULL_ARG;
+
     status_t rc;
     
-    char fields[BUFSIZ][4][64];
-    size_t wemployee = 0;
-    size_t wfields   = 0;
-    size_t wfield    = 0;
+    const size_t EMPSIZ = 100;
+    size_t cap = EMPSIZ;
+    Employee *res = malloc(cap * sizeof(Employee));
+    if (!res) return STATUS_ERR_ALLOC;
+    char buf[BUFSIZ];
+    size_t w_emp = 0;
+    size_t w_fld = 0;
+    size_t w = 0;
     for (size_t r = 0; r < src_size; r++) {
         char rd = src[r];
         if (rd == '\n') { continue; }
         
-        if (wemployee == BUFSIZ || wfield == 64)
+        if (w == BUFSIZ)
             return STATUS_ERR_OVERFLOW;
-        if (rd == ';') {
-            if (wfields != 3)
-                return STATUS_ERR_PARCE;
-            fields[wemployee++][wfields][wfield] = '\0';
-            wfields = 0;
-            wfield  = 0;
-            continue;
-        }
         if (rd == ',') {
-            if (wfields == 3)
-                return STATUS_ERR_PARCE;
-            fields[wemployee][wfields++][wfield] = '\0';
-            wfield = 0;
+            buf[w] = '\0';
+            switch (w_fld) {
+                case 0:
+                    rc = parse_uint(buf, &res[w_emp].id);
+                    if (rc != STATUS_OK) return rc;
+                    break;
+                case 1:
+                    res[w_emp].first_name = strdup(buf);
+                    if (!res[w_emp].first_name) { 
+                        free_employees(res, cap);
+                        return STATUS_ERR_ALLOC;
+                    }
+                    break;
+                case 2:
+                    res[w_emp].last_name = strdup(buf);
+                    if (!res[w_emp].last_name) {
+                        free_employees(res, cap);
+                        return STATUS_ERR_ALLOC;
+                    }
+                    break;
+                default:
+                    return STATUS_ERR_PARCE;
+            }
+
+            w_fld += 1;
+            w      = 0;
+
             continue;
         }
-        fields[wemployee][wfields][wfield++] = rd;
-    }
-    if (wfields != 0 || wfield != 0)
-        return STATUS_ERR_PARCE;
+        if (rd == ';') {
+            if (w_fld != 3)
+                return STATUS_ERR_PARCE;
+            buf[w] = '\0';
+            rc = parse_double(buf, &res[w_emp].salary);
+            if (rc != STATUS_OK) return rc;
+            if (res[w_emp].salary < 0) return STATUS_ERR_PARCE;
 
-    size_t EMPSIZ = wemployee;
-    Employee *res = malloc(EMPSIZ * sizeof(Employee));
-    if (!res) return STATUS_ERR_ALLOC;
-    for (int i = 0; i < EMPSIZ; i++) {
-        rc = parse_uint(fields[i][0], &res[i].id);
-        if (rc != STATUS_OK) return rc;
-        res[i].first_name = fields[i][1];
-        res[i].last_name  = fields[i][2];
-        rc = parse_double(fields[i][3], &res[i].salary);
-        if (rc != STATUS_OK) return rc;
-        if (res[i].salary < 0) return STATUS_ERR_PARCE;
-    } 
+            w_emp += 1;
+            w_fld  = 0;
+            w      = 0;
+
+            if (w_emp == cap) {
+                cap += EMPSIZ;
+                Employee *tmp = realloc(res, cap * sizeof(Employee));
+                if (!tmp) {
+                    free(res);
+                    return STATUS_ERR_ALLOC;
+                }
+                res = tmp;
+            }
+
+            continue;
+        }
+        buf[w++] = rd;
+    }
+    if (w_fld != 0 || w != 0)
+        return STATUS_ERR_PARCE;
+    else if (w_emp == 0) {
+        free(res);
+        *emp = NULL;
+        *emp_size = 0;
+        return STATUS_OK;
+    }
+    
+    Employee *tmp = realloc(res, w_emp * sizeof(Employee));
+    if (!tmp) {
+        free(res);
+        return STATUS_ERR_ALLOC;
+    }
+    res = tmp;
+
     *emp = res;
-    *emp_size = EMPSIZ;
+    *emp_size = w_emp;
     
     return STATUS_OK;
 }
@@ -219,27 +274,27 @@ int main(int argc, char *argv[]) {
         case STATUS_OK: { break; }
         case STATUS_ERR_PARCE: {
             fprintf(stderr, "Ошибка формата .employee\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         case STATUS_ERR_ALLOC: {
             fprintf(stderr, "Ошибка выделения памяти\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         case STATUS_ERR_OVERFLOW: {
             fprintf(stderr, "Переполнение буфера (внутри)\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         case STATUS_ERR_NULL_ARG: {
             fprintf(stderr, "Внутренняя ошибка\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         default: {
             fprintf(stderr, "Неизвестная ошибка\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
     }
@@ -255,7 +310,7 @@ int main(int argc, char *argv[]) {
         }
         default: {
             fprintf(stderr, "Существующие флаги: a и d.\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
     }
@@ -263,27 +318,27 @@ int main(int argc, char *argv[]) {
     char *dst = NULL;
     size_t dst_size;
     rc = serialize_employee(emp, emp_size, &dst, &dst_size);
-    free(emp);
+    free_employees(emp, emp_size);
     switch (rc) {
         case STATUS_OK: { break; }
         case STATUS_ERR_PARCE: {
             fprintf(stderr, "Ошибка парсинга .employee\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         case STATUS_ERR_ALLOC: {
             fprintf(stderr, "Ошибка выделения памяти\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         case STATUS_ERR_NULL_ARG: {
             fprintf(stderr, "Внутренняя ошибка\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
         default: {
             fprintf(stderr, "Неизвестная ошибка\n");
-            free(emp);
+            free_employees(emp, emp_size);
             return 1;
         }
     }
