@@ -4,14 +4,12 @@
 
 typedef struct { int line; int sym; } pos_t;
 
-status_t find_all_subs(const char *substr, const char *path)
-{
+status_t find_all_subs(const char *substr, const char *path) { // Кнут-Морис-Пратт по Зайке
     if (substr == NULL || path == NULL)
         return STATUS_ERR_NULL_ARG;
 
     size_t m = strlen(substr);
-    if (m == 0)
-        return STATUS_ERR_FORMAT;
+    if (m == 0) return STATUS_ERR_FORMAT;
 
     FILE *f = fopen(path, "rb");
     if (!f) return STATUS_ERR_OPEN;
@@ -127,7 +125,30 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < files_count; i++)
         paths[i] = argv[i + 3];
 
-    scan_files_for(substring, files_count, paths);
+    rc = scan_files_for(substring, files_count, paths);
+    switch (rc) {
+        case STATUS_OK: { break; }
+        case STATUS_ERR_OPEN: {
+            fprintf(stderr, "Не удалось открыть файл.\n");
+            return 1;
+        }
+        case STATUS_ERR_CLOSE: {
+            fprintf(stderr, "Не удалось закрыть файл.\n");
+            return 1;
+        }
+        case STATUS_ERR_FORMAT: {
+            fprintf(stderr, "Подстрока пуста.\n");
+            return 1;
+        }
+        case STATUS_ERR_NULL_ARG: {
+            fprintf(stderr, "Произошла внутренняя ошибка.\n");
+            return 1;
+        }
+        default: {
+            fprintf(stderr, "Произошла неизвестная ошибка.\n");
+            return 1;
+        }
+    }
 
     return 0;
 }
