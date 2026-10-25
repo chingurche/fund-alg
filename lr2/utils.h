@@ -6,6 +6,7 @@
 #include <math.h>
 #include <limits.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/stat.h>
 
 typedef enum {
@@ -24,6 +25,31 @@ typedef enum {
     STATUS_ERR_PARCE,
     STATUS_ERR_OVERFLOW
 } status_t;
+
+status_t parse_size_t(const char *s, size_t *out)
+{
+    if (s == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    const char *p = s;
+    if (*p == '-')
+        return STATUS_ERR_FORMAT;
+
+    char *end = NULL;
+    unsigned long long v = strtoull(s, &end, 10);
+
+    if (end == s)
+        return STATUS_ERR_FORMAT;
+
+    if (*end != '\0')
+        return STATUS_ERR_FORMAT;
+
+    if (v > (unsigned long long)SIZE_MAX)
+        return STATUS_ERR_RANGE;
+
+    *out = (size_t)v;
+    return STATUS_OK;
+}
 
 status_t parse_uint(const char *s, unsigned int *out)
 {
