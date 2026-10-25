@@ -23,18 +23,18 @@ status_t select_files(const file_t *files, const size_t n,
 
     double efficiency[n];
     for (int i = 0; i < n; i++) {
-        efficiency[i] = files[i].importance / files[i].size;
+        efficiency[i] = (double)files[i].importance / (double)files[i].size;
     }
 
     res_t res;
     res.total_size       = 0;
     res.total_importance = 0;
-    res.filev = malloc(n * sizeof(file_t));
+    bool *taken = calloc(n, sizeof(*taken));
+    if (!taken) return STATUS_ERR_ALLOC;
     res.filec = 0;
 
-    int t = 0;
     while (true) {
-        if (t == n) break;
+        if (res.filec == n) break;
         int max = 0;
         for (int i = 1; i < n; i++) {
             if (efficiency[i] > efficiency[max])
@@ -47,11 +47,19 @@ status_t select_files(const file_t *files, const size_t n,
         else {
             res.total_size += file.size;
             res.total_importance += file.importance;
-            res.filev[t++] = file; 
-            res.filec += 1; 
+            taken[max] = true; 
+            res.filec++; 
         }
     }
 
+    res.filev = malloc(n * sizeof(file_t));
+    if (!res.filev) return STATUS_ERR_ALLOC;
+    int j = 0;
+    for (int i = 0; i < res.total_size; i++) {
+        if (taken[i])
+            res.filev[j++] = files[i];
+    }
+    
     *out = res;
 
     return STATUS_OK;
@@ -103,7 +111,7 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         }
-        files[i].filename = token1;
+        files[i].filename = strdup(token1);
 
         rc = parse_size_t(token2, &files[i].size);
         if (rc != STATUS_OK) {
@@ -129,6 +137,9 @@ int main(int argc, char *argv[]) {
             res.total_size, 
             res.total_importance, 
             res.filec);
+
+    for (int i = 0; i < res.filec; i++)
+        printf("%s\n", res.filev[i].filename);
 
     return 0;
 }
