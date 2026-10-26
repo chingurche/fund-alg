@@ -66,10 +66,6 @@ typedef struct {
 }*/
 // старый неправильный алгоритм
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-
 status_t select_files(const file_t *files, const size_t n,
                       const size_t cap, res_t *out) {
     if (files == NULL || out == NULL)
