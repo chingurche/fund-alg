@@ -16,7 +16,7 @@ typedef struct {
     size_t filec;
 } res_t;
 
-status_t select_files(const file_t *files, const size_t n, 
+/*status_t select_files(const file_t *files, const size_t n,
                       const size_t cap, res_t *out) {
     if (files == NULL || out == NULL)
         return STATUS_ERR_NULL_ARG;
@@ -63,8 +63,84 @@ status_t select_files(const file_t *files, const size_t n,
     *out = res;
 
     return STATUS_OK;
-}
+}*/
+// старый неправильный алгоритм
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+status_t select_files(const file_t *files, const size_t n,
+                      const size_t cap, res_t *out) {
+    if (files == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    out->total_size = 0;
+    out->total_importance = 0;
+    out->filev = NULL;
+    out->filec = 0;
+    if (n == 0 || cap == 0) return STATUS_OK;
+
+    size_t *dp = calloc(cap + 1, sizeof(*dp));
+    if (!dp) return STATUS_ERR_ALLOC;
+
+    bool *take = calloc(n * (cap + 1), sizeof(*take));
+    if (!take) { free(dp); return STATUS_ERR_ALLOC; }
+
+    for (size_t i = 0; i < n; i++) {
+        size_t s = files[i].size;
+        size_t v = files[i].importance;
+        if (s > cap) continue;
+
+        for (size_t w = cap; w >= s; w--) {
+            size_t candidate = dp[w - s] + v;
+            if (candidate > dp[w]) {
+                dp[w] = candidate;
+                take[i * (cap + 1) + w] = true;
+            }
+        }
+    }
+    
+    bool *chosen_flag = calloc(n, sizeof(*chosen_flag));
+    if (!chosen_flag) { free(dp); free(take); return STATUS_ERR_ALLOC; }
+
+    size_t w = cap;
+    size_t filec = 0;
+    for (size_t i = n; i > 0; i--) {
+        if (take[i * (cap + 1) + w]) {
+            chosen_flag[i] = true;
+            w -= files[i].size;
+            filec++;
+        }
+    }
+
+    free(dp);
+    free(take);
+
+    file_t *chosen = NULL;
+    if (filec > 0) {
+        chosen = malloc(filec * sizeof(*chosen));
+        if (!chosen) { free(chosen_flag); return STATUS_ERR_ALLOC; }
+
+        size_t j = 0;
+        size_t total_size = 0, total_importance = 0;
+        for (size_t i = 0; i < n; i++) {
+            if (chosen_flag[i]) {
+                chosen[j++] = files[i];
+                total_size       += files[i].size;
+                total_importance += files[i].importance;
+            }
+        }
+        out->total_size       = total_size;
+        out->total_importance = total_importance;
+    }
+
+    free(chosen_flag);
+
+    out->filev = chosen;
+    out->filec = filec;
+    return STATUS_OK;
+}
 
 int main(int argc, char *argv[]) {
     status_t rc;
