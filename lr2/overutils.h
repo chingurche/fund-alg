@@ -43,15 +43,52 @@ status_t int_to_roman(int n, char *buf, size_t size) {
     return STATUS_OK;
 }
 
+int roman_char_to_val(int c) {
+    switch (toupper((unsigned char)c)) {
+        case 'I': return 1;
+        case 'V': return 5;
+        case 'X': return 10;
+        case 'L': return 50;
+        case 'C': return 100;
+        case 'D': return 500;
+        case 'M': return 1000;
+        default:  return -1;
+    }
+}
+
+status_t roman_to_int(const char *s, int *out) {
+    if (s == NULL || out == NULL) return STATUS_ERR_NULL_ARG;
+    if (*s == '\0') return STATUS_ERR_FORMAT;
+
+    int total = 0, prev = 0;
+    for (const char *p = s; *p; p++) {
+        int v = roman_char_to_val((unsigned char)*p);
+        if (v < 0) return STATUS_ERR_FORMAT;
+        if (v > prev) total += v - 2 * prev;
+        else          total += v;
+        prev = v;
+    }
+    if (total <= 0 || total > 3999) return STATUS_ERR_RANGE;
+
+    char check[32]; // удалю потом
+    if (int_to_roman(total, check, sizeof check) != STATUS_OK)
+        return STATUS_ERR_RANGE;
+    for (const char *a = s, *b = check; ; a++, b++) {
+        if (toupper((unsigned char)*a) != *b) return STATUS_ERR_FORMAT;
+        if (*a == '\0') break;
+    }
+    *out = total;
+    return STATUS_OK;
+}
+
 status_t uint_to_zeckendorf(unsigned int n, char *buf, size_t size) {
     if (buf == NULL) return STATUS_ERR_NULL_ARG;
     if (size == 0)   return STATUS_ERR_OVERFLOW;
 
     static unsigned int fib[46];
     fib[0] = 1u; fib[1] = 2u;
-    for (int i = 2; i < 46; ++i) {
+    for (int i = 2; i < 46; ++i)
         fib[i] = fib[i - 1] + fib[i - 2];
-    }
 
     buf[0] = '\0';
 
@@ -91,6 +128,49 @@ status_t uint_to_zeckendorf(unsigned int n, char *buf, size_t size) {
     }
     buf[pos++] = '1';
     buf[pos] = '\0';
+    return STATUS_OK;
+}
+
+status_t zeckendorf_to_uint(const char *s, unsigned int *out)
+{
+    if (s == NULL || out == NULL) return STATUS_ERR_NULL_ARG;
+    if (*s == '\0')              return STATUS_ERR_FORMAT;
+
+    size_t len = 0;
+    for (const char *p = s; *p; p++) {
+        if (*p != '0' && *p != '1') return STATUS_ERR_FORMAT;
+        len++;
+    }
+
+    if (len < 1) return STATUS_ERR_FORMAT;
+    if (s[len - 1] != '1') return STATUS_ERR_FORMAT;
+
+    size_t nbits = len - 1;
+
+    static unsigned int fib[46];
+    fib[0] = 1u; fib[1] = 2u;
+    for (int i = 2; i < 46; ++i)
+        fib[i] = fib[i - 1] + fib[i - 2];
+
+    if (nbits > 64) return STATUS_ERR_RANGE;
+
+    unsigned long long acc = 0;
+    for (size_t i = 0; i < nbits; i++) {
+        if (s[i] == '1') {
+            acc += fib[i];
+            if (acc > UINT_MAX) return STATUS_ERR_RANGE;
+        }
+    }
+
+    char check[80];
+    status_t rc = uint_to_zeckendorf((unsigned int)acc, check, sizeof check);
+    if (rc != STATUS_OK) return rc;
+    for (const char *a = s, *b = check; ; a++, b++) {
+        if (*a != *b) return STATUS_ERR_FORMAT;
+        if (*a == '\0') break;
+    }
+
+    *out = (unsigned int)acc;
     return STATUS_OK;
 }
 

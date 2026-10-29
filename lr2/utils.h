@@ -51,6 +51,27 @@ status_t parse_size_t(const char *s, size_t *out)
     return STATUS_OK;
 }
 
+status_t parse_int(const char *s, int *out) {
+    if (s == NULL || out == NULL)
+        return STATUS_ERR_NULL_ARG;
+
+    char *end = NULL;
+    long v = strtol(s, &end, 10);
+
+    if (end == s)
+        return STATUS_ERR_FORMAT;
+
+    if (*end != '\0')
+        return STATUS_ERR_FORMAT;
+
+    if (v < INT_MIN || v > INT_MAX) {
+        return STATUS_ERR_RANGE;
+    }
+
+    *out = (int)v;
+    return STATUS_OK;
+}
+
 status_t parse_uint(const char *s, unsigned int *out)
 {
     if (s == NULL || out == NULL)
