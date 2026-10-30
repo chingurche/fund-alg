@@ -9,6 +9,16 @@
 #include <stdint.h>
 #include <sys/stat.h>
 
+// отказался от этой идеи потому что надо еще освобождать память
+/*#define CHECK(RC) do { if ((RC)) { return (RC); } } while (0)
+#define QCHECKMAIN(RC) \
+    do { \
+        if ((RC)) { \
+            fprintf(stderr, "Произошла ошибка в ходе исполнения программы.\n"); \
+            return 1; \
+        } \
+    } while (0) */
+
 typedef enum {
     STATUS_OK = 0,
 	STATUS_ERR_NULL_ARG,
