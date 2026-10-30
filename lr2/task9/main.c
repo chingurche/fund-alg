@@ -4,20 +4,25 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-static status_t is_finite(double x, int base, double eps, int max_steps, bool *out) {
+static status_t is_finite(double x, int base, double eps, bool *out) {
     if (out == NULL)    return STATUS_ERR_NULL_ARG;
     if (base < 2)       return STATUS_ERR_RANGE;
     if (eps <= 0.0)     return STATUS_ERR_RANGE;
 
-    double frac = x;
-    for (int step = 0; step < max_steps; step++) {
+    double frac      = x;
+    double threshold = eps;
+
+    while (threshold < 1.0) {
         frac *= base;
         double digit = floor(frac);
         frac -= digit;
+
         if (frac < eps) {
             *out = true;
             return STATUS_OK;
         }
+
+        threshold *= base;
     }
 
     *out = false;
@@ -42,10 +47,9 @@ static status_t finite_all(size_t base, bool *out, size_t count, ...) {
 
     va_end(ap);
 
-    static const double eps  = 1e-10;
-    static const int max_steps = 100;
+    static const double eps = 1e-10;
     for (int i = 0; i < count; i++) {
-        rc = is_finite(value[i], base, eps, max_steps, &out[i]);
+        rc = is_finite(value[i], base, eps, &out[i]);
         if (rc) return rc;
     } 
 
