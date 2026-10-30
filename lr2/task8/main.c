@@ -21,7 +21,7 @@ static char digit_char(int v, bool up) {
     return (char)((up ? 'A' : 'a') + (v - 10));
 }
 
-status_t stradd(const char *a, const char *b, int base,
+static status_t stradd(const char *a, const char *b, int base,
                      char *out, size_t size) {
     if (a == NULL || b == NULL || out == NULL)  return STATUS_ERR_NULL_ARG;
     if (size == 0)                              return STATUS_ERR_OVERFLOW;
@@ -56,7 +56,7 @@ status_t stradd(const char *a, const char *b, int base,
     return STATUS_OK;
 }
 
-status_t strsum(size_t base, char **out, size_t count, ...) {
+static status_t strsum(size_t base, char **out, size_t count, ...) {
     if (out == NULL)    return STATUS_ERR_NULL_ARG;
     if (count < 1)      return STATUS_ERR_INVALID;
     status_t rc;
@@ -94,7 +94,7 @@ status_t strsum(size_t base, char **out, size_t count, ...) {
 
 int main(int argc, char *argv[]) {
     char *addend[] = { "A7K3M9X2Q5B", "8R4T6W1Y7C3", "F0QZOB0XHE8" };
-    
+
     char *str;
     status_t rc = strsum(36, &str, 3, addend[0], addend[1], addend[2]);
     switch (rc) {
