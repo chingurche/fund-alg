@@ -102,7 +102,7 @@ status_t select_files(const file_t *files, const size_t n,
 
     size_t w = cap;
     size_t filec = 0;
-    for (size_t i = n; i > 0; i--) {
+    for (size_t i = n; i-- > 0; ) {
         if (take[i * (cap + 1) + w]) {
             chosen_flag[i] = true;
             w -= files[i].size;
@@ -179,6 +179,9 @@ int main(int argc, char *argv[]) {
         
         for (int j = 0; j < i; j++) {
             if (strcmp(token1, files[j].filename) == 0) {
+                for (size_t k = 0; k < n; k++)
+                    free(files[k].filename);
+                free(files);
                 fprintf(stderr, "Файл с таким именем уже существует.\n");
                 return 1;
             }
@@ -187,11 +190,17 @@ int main(int argc, char *argv[]) {
 
         rc = parse_size_t(token2, &files[i].size);
         if (rc != STATUS_OK) {
+            for (size_t k = 0; k < n; k++)
+                free(files[k].filename);
+            free(files);
             fprintf(stderr, "Что-то пошло не так при парсе size.\n");
             return 1;
         }
         rc = parse_size_t(token3, &files[i].importance);
         if (rc != STATUS_OK) {
+            for (size_t k = 0; k < n; k++)
+                free(files[k].filename);
+            free(files);
             fprintf(stderr, "Что-то пошло не так при парсе importance.\n");
             return 1;
         }
@@ -212,6 +221,11 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < res.filec; i++)
         printf("%s\n", res.filev[i].filename);
+ 
+    for (size_t k = 0; k < n; k++)
+        free(files[k].filename);
+    free(files);
+    free(res.filev);
 
     return 0;
 }

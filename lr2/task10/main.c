@@ -63,5 +63,8 @@ int main(int argc, char *argv[]) {
                 (i+1 == count) ? "" : " + ");
     printf("\n");
 
+
+    free(new_coeff);
+
     return 0;
 }

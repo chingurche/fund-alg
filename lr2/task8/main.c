@@ -118,5 +118,7 @@ int main(int argc, char *argv[]) {
             return 1;
     }
 
+    free(str);
+
     return 0;
 }
