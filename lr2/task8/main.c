@@ -93,10 +93,10 @@ static status_t strsum(size_t base, char **out, size_t count, ...) {
 }
 
 int main(int argc, char *argv[]) {
-    char *addend[] = { "A7K3M9X2Q5B", "8R4T6W1Y7C3", "F0QZOB0XHE8" };
+    char *addend[] = { "101", "101", "101" };
 
     char *str;
-    status_t rc = strsum(36, &str, 3, addend[0], addend[1], addend[2]);
+    status_t rc = strsum(2, &str, 3, addend[0], addend[1], addend[2]);
     switch (rc) {
         case STATUS_OK: 
             printf("%s + %s + %s = %s\n", addend[0], addend[1], addend[2], str);

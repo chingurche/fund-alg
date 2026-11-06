@@ -10,6 +10,6 @@ int main(int argc, char *argv[]) {
     overfprintf(stdout, "%mi - Memory dump of int32_t\n", (int32_t)129);
     overfprintf(stdout, "%mu - Memory dump of uint32_t\n", (uint32_t)129);
     overfprintf(stdout, "%md - Memory dump of double\n", (double)94124.41921);
-    overfprintf(stdout, "%mf - Memory dump of float\n", (double)56385.38564);
+    overfprintf(stdout, "%mf - Memory dump of float\n", (double)56385.38565);
     return 0;
 }

@@ -69,7 +69,7 @@ int main(int argc, char *argv) {
     // нужно продлить запись до вышеуказанного eps
 
     bool finite[count];
-    rc = finite_all(3, finite, count, 
+    rc = finite_all(20, finite, count, 
                     prop_fract[0], 
                     prop_fract[1], 
                     prop_fract[2]); // 3 и 20

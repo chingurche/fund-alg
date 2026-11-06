@@ -164,7 +164,7 @@ status_t longest_vector(int n, vector_t ***out, int **out_count,
 int main(int argc, char *argv[]) {
     status_t rc;
 
-    int vector_count = 6, norm_count = 3;
+    int vector_count = 6, norm_count = 3; // n - вект, m - координат O(n * m)
     vector_t vector[] = {
         { (double[]){ 0.9152, 1.1052, 0.4912, 4.9214 }, 4 },
         { (double[]){ 2.3847, 1.1293, 0.5571, 0.0000 }, 4 },

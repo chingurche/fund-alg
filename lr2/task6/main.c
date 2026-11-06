@@ -22,5 +22,10 @@ int main(int argc, char *argv[]) {
     oversscanf("1A2B", "%CV", &d[1], 14);
     printf("%d - число Cv * CV\n", d[0] * d[1]);
 
+    int z[2];
+    oversscanf("CLXXXI 123", "%Ro %d", &z[0], &z[1]);
+
+    printf("%d", z[0] - z[1]);
+
     return 0;
 }
