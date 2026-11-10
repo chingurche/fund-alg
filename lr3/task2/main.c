@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-status_t get_max_presentations(
-    presentation_t * const presv, 
+status_t getMaxPresentations(
+    Presentation * const presv, 
     int const presc, 
     int const concpres, 
     int * const out) {
@@ -14,7 +14,7 @@ status_t get_max_presentations(
         return STATUS_ERR_RANGE;
     }
 
-    qsort(presv, presc, sizeof(presentation_t), compare_presentations);
+    qsort(presv, presc, sizeof(Presentation), comparePresentation);
 
     int *hall_ends = calloc(concpres, sizeof(int));
     if (hall_ends == NULL) {
@@ -24,8 +24,8 @@ status_t get_max_presentations(
     int max_scheduled = 0;
 
     for (int i = 0; i < presc; i++) {
-        int start = to_minutes(presv[i].start_time);
-        int finish = to_minutes(presv[i].finish_time);
+        int start = toMinutes(presv[i].start_time);
+        int finish = toMinutes(presv[i].finish_time);
 
         int best_hall = -1;
         int best_hall_end = -1;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     status_t rc;
     char line[BUFSIZ];
 
-    presentation_t *presv;
+    Presentation *presv;
     int presc = 0;
     int concpres;
 
@@ -92,34 +92,34 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        mytime_t start_time, finish_time;
-        rc = init_mytime_t(time[0], time[1], &start_time);
+        Time start_time, finish_time;
+        rc = newTime(time[0], time[1], &start_time);
         if (rc) {
-            fprintf(stderr, "Не удалось создать mytime_t.\n");
+            fprintf(stderr, "Не удалось создать Time.\n");
             free(presv);
             return 1;
         }
-        rc = init_mytime_t(time[2], time[3], &finish_time);
+        rc = newTime(time[2], time[3], &finish_time);
         if (rc) {
-            fprintf(stderr, "Не удалось создать mytime_t.\n");
+            fprintf(stderr, "Не удалось создать Time.\n");
             free(presv);
             return 1;
         }
-        rc = init_presentation_t(
+        rc = newPresentation(
             id,
             start_time,
             finish_time,
             &presv[i]
         );
         if (rc) {
-            fprintf(stderr, "Не удалось создать presentation_t.\n");
+            fprintf(stderr, "Не удалось создать Presentation.\n");
             free(presv);
             return 1;
         }
     }
 
     int max;
-    rc = get_max_presentations(presv, presc, concpres, &max);
+    rc = getMaxPresentations(presv, presc, concpres, &max);
     free(presv);
 
     switch (rc) {

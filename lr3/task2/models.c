@@ -4,7 +4,7 @@
 // здесь было очень много динамической логики
 // но я отказался - пусть будет просто статика
 
-status_t init_mytime_t(int h, int min, mytime_t *out) {
+status_t newTime(int h, int min, Time *out) {
     if (out == NULL)            return STATUS_ERR_NULL_ARG;
     if   (h < 0 || h > 23)      return STATUS_ERR_RANGE;
     if (min < 0 || min > 59)    return STATUS_ERR_RANGE;
@@ -14,11 +14,11 @@ status_t init_mytime_t(int h, int min, mytime_t *out) {
     return STATUS_OK;
 }
 
-status_t init_presentation_t(
+status_t newPresentation(
     int id, 
-    mytime_t start, 
-    mytime_t finish, 
-    presentation_t *out) {
+    Time start, 
+    Time finish, 
+    Presentation *out) {
     if (out == NULL)    return STATUS_ERR_NULL_ARG;
     if (id <= 0)        return STATUS_ERR_RANGE;
     if  (start.hours > finish.hours ||
@@ -32,20 +32,20 @@ status_t init_presentation_t(
     return STATUS_OK;
 }
 
-int to_minutes(mytime_t t) {
+int toMinutes(Time t) {
     return t.hours * 60 + t.minutes;
 }
 
-int compare_presentations(const void *a, const void *b) {
-    const presentation_t *p1 = (const presentation_t *)a;
-    const presentation_t *p2 = (const presentation_t *)b;
+int comparePresentation(const void *a, const void *b) {
+    const Presentation *p1 = (const Presentation *)a;
+    const Presentation *p2 = (const Presentation *)b;
     
-    int f1 = to_minutes(p1->finish_time);
-    int f2 = to_minutes(p2->finish_time);
+    int f1 = toMinutes(p1->finish_time);
+    int f2 = toMinutes(p2->finish_time);
     
     if (f1 != f2) return f1 - f2;
     
-    int s1 = to_minutes(p1->start_time);
-    int s2 = to_minutes(p2->start_time);
+    int s1 = toMinutes(p1->start_time);
+    int s2 = toMinutes(p2->start_time);
     return s1 - s2;
 }
