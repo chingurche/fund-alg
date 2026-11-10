@@ -56,26 +56,35 @@ status_t parseHuffmanTree(char const *path, Node ** const out) {
     return STATUS_OK;
 }
 
-void printCodes(Node* root, int arr[], int top) {
-    if (top == 0 && !root->left && !root->right) {
-        printf("%c: 0\n", root->ch);
+void findAndPrint(Node* root, unsigned char target, int arr[], int top) {
+    if (root == NULL) return;
+
+    if (!root->left && !root->right) {
+        if (root->ch == target) {
+            printf("%3u (%c): %3zu раз | ", root->ch, root->ch, root->freq);
+            if (top == 0) printf("0");
+            for (int i = 0; i < top; i++) printf("%d", arr[i]);
+            printf("\n");
+        }
         return;
     }
+    
     if (root->left) {
         arr[top] = 0;
-        printCodes(root->left, arr, top + 1);
+        findAndPrint(root->left, target, arr, top + 1);
     }
     if (root->right) {
         arr[top] = 1;
-        printCodes(root->right, arr, top + 1);
-    }
-    if (!root->left && !root->right) {
-        printf("%3u (%c): %3zu раз | ", root->ch, root->ch, root->freq);
-        for (int i = 0; i < top; ++i)
-            printf("%d", arr[i]);
-        printf("\n");
+        findAndPrint(root->right, target, arr, top + 1);
     }
 }
+
+void printCodes(Node* root, int arr[]) {
+    for (int i = 0; i < 256; i++) {
+        findAndPrint(root, (unsigned char)i, arr, 0);
+    }
+}
+
 
 void get_stats(Node *root, int depth, size_t *total_bits, size_t *total_orig_bytes) {
     if (root == NULL) return;
@@ -93,11 +102,11 @@ void get_stats(Node *root, int depth, size_t *total_bits, size_t *total_orig_byt
 
 int main(int argc, char *argv[]) {
     Node *root;
-    parseHuffmanTree("./data.txt", &root);
+    parseHuffmanTree(argv[1], &root);
 
     int arr[BUFSIZ], top = 0;
     printf("Таблица кодов Хаффмана:\n");
-    printCodes(root, arr, top);
+    printCodes(root, arr);
 
     size_t total_bits = 0;
     size_t total_orig_bytes = 0;
