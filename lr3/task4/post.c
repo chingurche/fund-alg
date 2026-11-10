@@ -109,6 +109,7 @@ status_t newPost(Address *adr, Post **out) {
     Post *post = malloc(sizeof *post);
     if (!post) return STATUS_ERR_ALLOC;
 
+    post->address = adr;
     post->count = 0;
     static const int startcap = 16;
     post->cap = startcap;
@@ -126,6 +127,7 @@ status_t newPost(Address *adr, Post **out) {
 }
 
 void freeAddress(Address *adr) {
+    if (!adr) return;
     freeString(adr->city);
     freeString(adr->street);
     adr->house = 0;
@@ -136,6 +138,7 @@ void freeAddress(Address *adr) {
 }
 
 void freeMail(Mail *m) {
+    if (!m) return;
     freeAddress(m->address);
     m->weight = 0;
     freeString(m->id);
@@ -145,6 +148,7 @@ void freeMail(Mail *m) {
 }
 
 void freePost(Post *p) {
+    if (!p) return;
     freeAddress(p->address);
     for (int i = 0; i < p->count; i++)
         freeMail(p->mail[i]);
@@ -206,7 +210,7 @@ status_t addMail(Post *p, Mail *m) {
         if (!tmp) return STATUS_ERR_ALLOC;
 
         p->cap *= 2;
-        free(p->mail);
+        //free(p->mail);
         p->mail = tmp;
     }
 
@@ -251,7 +255,8 @@ status_t removeMail(Post *p, Mail *m) {
     for (int i = founded; i < p->count - 1; i++) {
         p->mail[i] = p->mail[i+1];
     }
-    p->count--; // мусорное значение просто остается
+    p->mail[p->count - 1] = NULL; 
+    p->count--;
 
     return STATUS_OK;
 }
@@ -331,7 +336,7 @@ status_t toLineMail(Mail *m, char *out, int size) {
     int len = snprintf(
         out, 
         size,
-        "%14s: %19s %19s %7.3fкг\n",
+        "%14s:  от %19s  до %19s  %7.3f кг\n",
         m->id->data,
         m->arriveTime->data,
         m->deliveryTime->data,
@@ -355,7 +360,7 @@ status_t toFullMail(Mail *m, char *out, int size) {
         "Номер квартиры:  %d\n"
         "Индекс:          %s\n"
         "\nДанные посылки\n"
-        "Вес посылки:     %fкг\n"
+        "Вес посылки:     %.3f кг\n"
         "Идентификатор:   %s\n"
         "Время создания:  %s\n"
         "Время получения: %s\n", 
@@ -363,8 +368,8 @@ status_t toFullMail(Mail *m, char *out, int size) {
         m->address->street->data, 
         m->address->house, 
         isEmptyString(m->address->building) ? 
-        m->address->building->data :
-        "нет информации", 
+        "нет информации" :
+        m->address->building->data, 
         m->address->apartment, 
         m->address->postalCode->data,
         m->weight,

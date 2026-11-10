@@ -13,7 +13,7 @@ status_t newString(char *s, String **out) {
     str->length = sz + 1;
 
     str->data = malloc((sz + 1) * sizeof(char));
-    if (!str->data && sz != 0) {
+    if (!str->data) {
         free(str);
         return STATUS_ERR_ALLOC;
     }
@@ -26,6 +26,7 @@ status_t newString(char *s, String **out) {
 }
 
 void freeString(String *str) {
+    if (str == NULL) return;
     free(str->data);
     str->length = 0;
     free(str);
