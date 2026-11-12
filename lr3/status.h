@@ -16,6 +16,7 @@ typedef enum {
     STATUS_ERR_READ,
     STATUS_ERR_WRITE,
     STATUS_ERR_CLOSE,
+    STATUS_ERR_PARSE,
     STATUS_ERR_PATH  
 } status_t;
 
