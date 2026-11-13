@@ -27,5 +27,4 @@ int compare_first_name(const void *a, const void *b);
 int compare_last_name(const void *a, const void *b);
 int compare_group(const void *a, const void *b);
 
-
 #endif

@@ -1,0 +1,28 @@
+Найдено по id(10101): John Smith IS-21 86.60
+Запись студентов чей средний балл за все экзамены ниже среднего.
+10101 John Smith IS-21 86.60
+10102 Alice Johnson CS-22 95.60
+10104 Emma Brown AM-23 88.40
+10105 David Jones DS-21 97.80
+10108 Olivia Davis AI-23 94.40
+10110 Isabella Martinez CS-22 90.20
+10111 William Hernandez SE-20 81.80
+10112 Mia Lopez AM-23 99.20
+10114 Charlotte Wilson CY-22 90.00
+10116 Amelia Thomas AI-23 98.00
+10118 Harper Moore CS-22 85.60
+10120 Evelyn Martin AM-23 95.80
+Найдено по id(10111): William Hernandez SE-20 81.80
+Запись студентов чей средний балл за все экзамены ниже среднего.
+10108 Olivia Davis AI-23 94.40
+10116 Amelia Thomas AI-23 98.00
+10104 Emma Brown AM-23 88.40
+10112 Mia Lopez AM-23 99.20
+10120 Evelyn Martin AM-23 95.80
+10102 Alice Johnson CS-22 95.60
+10110 Isabella Martinez CS-22 90.20
+10118 Harper Moore CS-22 85.60
+10114 Charlotte Wilson CY-22 90.00
+10105 David Jones DS-21 97.80
+10101 John Smith IS-21 86.60
+10111 William Hernandez SE-20 81.80

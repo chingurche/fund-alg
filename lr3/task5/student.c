@@ -26,11 +26,9 @@ status_t newStudent(
     if (!first_name || !last_name ||
         !group || !grade || !out)
         return STATUS_ERR_NULL_ARG;
-    if (is_empty(first_name) ||
-        is_empty(first_name) ||
-        is_empty(group) ||
-        !is_all_alpha(first_name) ||
-        !is_all_alpha(last_name))
+    if (is_empty(first_name) || !is_all_alpha(first_name) ||
+        is_empty(first_name) || !is_all_alpha(last_name) ||
+        is_empty(group))
         return STATUS_ERR_INVALID;
 
     Student *s = malloc(sizeof *s);
