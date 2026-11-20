@@ -89,8 +89,10 @@ int compareString(String *a, String *b) {
 
 
     for (int i = 0; i < a->length; i++) {
-        if (a->data[i] != b->data[i])
-            return a->data[i] - b->data[i];
+        if (a->data[i] < b->data[i])
+            return -1;
+        elif if (a->data[i] > b->data[i])
+            return 1;
     }
 
     return 0;

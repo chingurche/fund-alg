@@ -28,49 +28,95 @@
     } while (0)
 
 
-// int to base 2 pow r
+static size_t bit_add(size_t a, size_t b) {
+    while (b != 0) {
+        size_t carry = a & b;
+        a = a ^ b;
+        b = carry << 1;
+    }
+    return a;
+}
+
+static size_t bit_sub(size_t a, size_t b) {
+    return bit_add(a, bit_add(~b, 1));
+}
+
+static size_t bit_neg(size_t a) {
+    return bit_add(~a, 1);
+}
+
+static char digit_to_char(int digit) {
+    if (digit < 10) {
+        return (char)bit_add((size_t)'0', (size_t)digit);
+    } else {
+        return (char)bit_add(bit_sub((size_t)'A', 10), (size_t)digit);
+    }
+}
+
 static status_t inttor( const int value, const int r,
                         char * const out, const size_t size) {
     if (out == NULL)        return STATUS_ERR_NULL_ARG;
     if (r < 1 || r > 5)     return STATUS_ERR_RANGE;
-    static const size_t INT_SIZ = 32;
-    size_t targsize = (INT_SIZ + r - 1) / r + 2;
-    if (size < targsize)    return STATUS_ERR_OVERFLOW;
+    if (size == 0)          return STATUS_ERR_OVERFLOW;
 
-    unsigned int n = (value < 0) ? -(unsigned int)value : (unsigned int)value;
+    size_t n = (value < 0) ? bit_neg((size_t)value) : (size_t)value;
+
+    char *p = out;
+    size_t ptr_addr = (size_t)p; 
+    size_t written = 0;
+    
+    size_t max_writable = bit_sub(size, 1);
 
     if (n == 0) {
-        out[0] = '0';
-        out[1] = '\0';
+        if (written >= max_writable) return STATUS_ERR_OVERFLOW;
+        
+        *p = '0';
+        ptr_addr = bit_add((size_t)ptr_addr, 1);
+        p = (char *)ptr_addr;
+        written = bit_add(written, 1);
+        
+        *p = '\0';
         return STATUS_OK;
     }
-
-    int w = 0;
     
-    if (value < 0)
-        out[w++] = '-';
+    if (value < 0) {
+        if (written >= max_writable) return STATUS_ERR_OVERFLOW;
+        
+        *p = '-';
+        ptr_addr = bit_add((size_t)ptr_addr, 1);
+        p = (char *)ptr_addr;
+        written = bit_add(written, 1);
+    }
 
     bool started = false;
-    unsigned int mask = (1u << r) - 1;
+    size_t mask = ~(~0u << r);
 
-    int start = (int)(INT_SIZ-1) - ((int)(INT_SIZ-1) % r);
-    for (int i = start; i >= 0; i -= r) {
+    int start;
+    switch (r) {
+        case 1: start = 31; break;
+        case 2: start = 30; break;
+        case 3: start = 30; break;
+        case 4: start = 28; break;
+        case 5: start = 30; break;
+        default: return STATUS_ERR_RANGE; 
+    }
+    for (int i = start; i >= 0; i = (int)bit_sub((size_t)i, (size_t)r)) {
         int digit = (n >> i) & mask; 
         
         if (digit != 0) 
             started = true;
 
         if (started) {
-            if (digit < 10) {
-                out[w++] = '0' + digit;
-            } else {
-                out[w++] = 'A' + (digit - 10);
-            }
+            if (written >= max_writable) return STATUS_ERR_OVERFLOW;
+            
+            *p = digit_to_char(digit);
+            ptr_addr = bit_add((size_t)ptr_addr, 1);
+            p = (char *)ptr_addr;
+            written = bit_add(written, 1);
         }
-
     }
 
-    out[w] = '\0';
+    *p = '\0';
     return STATUS_OK;
 }
 

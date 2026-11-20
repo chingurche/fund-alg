@@ -19,11 +19,27 @@ bool is_valid_datetime_format(const char *s) {
                    &d, &m, &y, &h, &min, &sec, &consumed);
 
     if (n != 6) return false;
+    if (consumed != 19) return false;
 
     if (s[2] != '.' || s[5] != '.' || s[10] != ' ' ||
         s[13] != ':' || s[16] != ':') return false;
 
-    if (consumed != 19) return false;
+    if (y < 1) return false;
+    if (m < 1 || m > 12) return false;
+    if (h < 0 || h > 23) return false;
+    if (min < 0 || min > 59) return false;
+    if (sec < 0 || sec > 59) return false;
+
+    int days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    if (m == 2) {
+        bool is_leap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
+        if (is_leap) {
+            days_in_month[1] = 29;
+        }
+    }
+
+    if (d < 1 || d > days_in_month[m - 1]) return false;
 
     return true;
 }

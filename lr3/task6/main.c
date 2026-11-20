@@ -49,6 +49,39 @@ bool is_stop_file(const char *path) {
     return strcmp(ext, ".stop") == 0;
 }
 
+static char *read_line(FILE *f) {
+    size_t cap = 128;
+    size_t len = 0;
+    char *buf = malloc(cap);
+    if (!buf) return NULL;
+
+    int c;
+    while ((c = fgetc(f)) != EOF) {
+        if (len + 1 >= cap) {
+            cap *= 2;
+            char *tmp = realloc(buf, cap);
+            if (!tmp) {
+                free(buf);
+                return NULL;
+            }
+            buf = tmp;
+        }
+        buf[len++] = (char)c;
+        if (c == '\n') {
+            buf[len] = '\0';
+            return buf;
+        }
+    }
+    
+    if (len > 0) {
+        buf[len] = '\0';
+        return buf;
+    }
+    
+    free(buf);
+    return NULL;
+}
+
 status_t parse_stop_storage(char *path, Stop **out) {
     if (path == NULL || out == NULL)
         return STATUS_ERR_NULL_ARG;
@@ -59,13 +92,15 @@ status_t parse_stop_storage(char *path, Stop **out) {
     FILE *f = fopen(path, "r");
     if (!f) return STATUS_ERR_OPEN;
 
-    char line[BUFSIZ];
-    if (fgets(line, sizeof(line), f) == NULL) {
+    char *line = read_line(f);
+    if (line == NULL) {
         fclose(f);
         return STATUS_ERR_READ;
     }
+    
     float x, y;
     int n = sscanf(line, "%f,%f;\n", &x, &y);
+    free(line);
     if (n != 2) {
         fclose(f);
         return STATUS_ERR_PARSE;
@@ -78,19 +113,33 @@ status_t parse_stop_storage(char *path, Stop **out) {
         fclose(f);
         return rc;
     }
-    while (fgets(line, sizeof(line), f) != NULL) {
-        char num[16], a_time[20], d_time[20]; int type;
-        int n = sscanf(
-            line, "%15[^,],%19[^,],%19[^,],%d;", 
-            num, a_time, d_time, &type
-        );
-        if (n != 4) {
+
+    while ((line = read_line(f)) != NULL) {
+        char *num = strtok(line, ",;\r\n");
+        char *a_time = strtok(NULL, ",;\r\n");
+        char *d_time = strtok(NULL, ",;\r\n");
+        char *type_str = strtok(NULL, ",;\r\n");
+
+        if (!num || !a_time || !d_time || !type_str) {
+            free(line);
             fclose(f);
             Stop_free(stop);
             return STATUS_ERR_PARSE;
         }
+
+        char *endptr = NULL;
+        long type_val = strtol(type_str, &endptr, 10);
+        
+        if (*endptr != '\0') {
+            free(line);
+            fclose(f);
+            Stop_free(stop);
+            return STATUS_ERR_PARSE;
+        }
+
         StopEvent *event = NULL;
-        rc = StopEvent_init(num, a_time, d_time, (StopEvent_t)type, &event);
+        rc = StopEvent_init(num, a_time, d_time, (StopEvent_t)type_val, &event);
+        free(line);
         if (rc) {
             fclose(f);
             Stop_free(stop);
@@ -99,12 +148,16 @@ status_t parse_stop_storage(char *path, Stop **out) {
         rc = Stop_add_StopEvent(stop, event);
         if (rc) {
             fclose(f);
+            StopEvent_free(event);
             Stop_free(stop);
             return rc;
         }
     }
 
-    if (fclose(f) != 0) return STATUS_ERR_CLOSE;
+    if (fclose(f) != 0) { 
+        Stop_free(stop);
+        return STATUS_ERR_CLOSE;
+    }
 
     *out = stop;
     return STATUS_OK;
@@ -188,10 +241,11 @@ void handle_dialog(Route *root) {
             "(8) с самой короткой остановкой на остановочном пункте\n"
             "(9) с самым большим временем простоя (стоянки на своих остановках)\n"
             "(0) Выход\n"
+            "> "
         );
 
         read_console(line, sizeof(line));
-        if (line[0] == '\0' || line[1] == '\n') continue;
+        if (line[0] == '\0') continue;
         if (line[0] == '0') break;
         
         Route *best = NULL;
@@ -333,6 +387,10 @@ void handle_dialog(Route *root) {
 }
 
 int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Использование: %s .stop .stop ...\n", argv[0]);
+        return 1;
+    }
     status_t rc;
 
     size_t path_count = argc - 1;

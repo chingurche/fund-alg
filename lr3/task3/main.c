@@ -32,6 +32,12 @@ status_t parseHuffmanTree(char const *path, Node ** const out) {
         free(freq);
         return STATUS_ERR_CLOSE;
     }
+    
+    if (nodecap == 0) {
+        free(freq);
+        *out = NULL;
+        return STATUS_OK; 
+    }
 
     Node *nodes[nodecap];
     int n = 0;
@@ -39,8 +45,7 @@ status_t parseHuffmanTree(char const *path, Node ** const out) {
         if (freq[i] != 0) {
             Node *node = newNode((unsigned char)i, freq[i]);
             if (!node) {
-                for (int j = i; j >= 0; j--)
-                    free(nodes[j]);
+                for (int j = 0; j < n; j++) free(nodes[j]);
                 free(freq);
                 return STATUS_ERR_ALLOC;
             }
@@ -90,7 +95,9 @@ void get_stats(Node *root, int depth, size_t *total_bits, size_t *total_orig_byt
     if (root == NULL) return;
 
     if (!root->left && !root->right) {
-        *total_bits += root->freq * depth;
+        int actual_depth = (depth == 0) ? 1 : depth;
+        
+        *total_bits += root->freq * actual_depth;
         *total_orig_bytes += root->freq;
         return;
     }
@@ -101,8 +108,22 @@ void get_stats(Node *root, int depth, size_t *total_bits, size_t *total_orig_byt
 
 
 int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Использование: %s path\n", argv[0]);
+        return 1;
+    }
+    
     Node *root;
-    parseHuffmanTree(argv[1], &root);
+    status_t rc = parseHuffmanTree(argv[1], &root);
+    if (rc) return 1;
+
+    if (root == NULL) {
+        printf("Файл пуст.\n");
+        printf("Размер исходного файла:       0 байт (0 бит)\n");
+        printf("Размер закодированных данных: 0 байт (0 бит)\n");
+        printf("Экономия: 0.00%%\n");
+        return 0;
+    }
 
     int arr[BUFSIZ], top = 0;
     printf("Таблица кодов Хаффмана:\n");

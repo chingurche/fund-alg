@@ -1,6 +1,7 @@
 #include "models.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 
 status_t getMaxPresentations(
     Presentation * const presv, 
@@ -81,6 +82,8 @@ int main(int argc, char *argv[]) {
             free(presv);
             return 1;
         }
+        // sprintf(line, "%d 00:00 23:59", INT_MAX);
+
 
         int id, time[4];
         if (sscanf(

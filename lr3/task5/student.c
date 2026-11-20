@@ -27,7 +27,7 @@ status_t newStudent(
         !group || !grade || !out)
         return STATUS_ERR_NULL_ARG;
     if (is_empty(first_name) || !is_all_alpha(first_name) ||
-        is_empty(first_name) || !is_all_alpha(last_name) ||
+        is_empty(last_name) || !is_all_alpha(last_name) ||
         is_empty(group))
         return STATUS_ERR_INVALID;
 
@@ -42,6 +42,7 @@ status_t newStudent(
         free(s->first_name);
         free(s->last_name);
         free(s->group);
+        free(s);
         return STATUS_ERR_ALLOC;
     }
     s->grade = grade;
