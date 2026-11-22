@@ -26,14 +26,14 @@ struct Event {
     bool delete;
 
     union {
-        struct { char *old; }           set_last_name;
-        struct { char *old; }           set_first_name;
-        struct { char *old; }           set_patronymic;
-        struct { char *old; }           set_birth_date;
-        struct { char old; }            set_gender;
-        struct { float old; }           set_salary;
-        struct { }                      add_liver;
-        struct { Liver *predecessor; }  remove_liver;
+        struct { char *old; }   set_last_name;
+        struct { char *old; }   set_first_name;
+        struct { char *old; }   set_patronymic;
+        struct { char *old; }   set_birth_date;
+        struct { char old; }    set_gender;
+        struct { float old; }   set_salary;
+        struct { }              add_liver;
+        struct { Liver *prev; } remove_liver;
     };
     Event *prev;
 };
