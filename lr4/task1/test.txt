@@ -1,0 +1,5 @@
+#define NAME vlad
+#define LOWKEY 100 \
+++<3
+#define VALUE 67695678
+hello, my name is NAME, i love LOWKEY, i have over a VALUE dollars.
