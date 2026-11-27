@@ -1,0 +1,15 @@
+Load A, in.txt;     Print a, all;
+Save A, out.txt;
+Rand B, 5, 1, 100;  Print b, all;
+Concat A, b;        Print a, all;
+Free(b);            Print b, all;
+Remove a, 2, 7;     Print a, all;
+Copy A, 0, 2, b;    Print b, all;
+Rand C, 20, 1, 2;   Print b, all;
+Concat A, C;        Print a, all;
+Sort A+;            Print a, all;
+Sort A-;            Print a, all;
+Shuffle A;          Print a, all;
+Stats a;
+Print a, 3;
+Print a, 4, 16;
